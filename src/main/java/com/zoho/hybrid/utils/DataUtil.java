@@ -3,65 +3,71 @@ package com.zoho.hybrid.utils;
 import java.util.Hashtable;
 
 public class DataUtil {
-
-	public static Object[][] getData(ExcelReadWrite xls, String testCaseName){
-		String sheetName=FBConstants.TESTDATA_SHEET;
-		// reads data for only testCaseName
-		
-		int testStartRowNum=1;
-		System.out.println(xls.getCellData(sheetName, 0, testStartRowNum)); 
-		while(!xls.getCellData(sheetName, 0, testStartRowNum).equals(testCaseName)){
+	public static Object[][] getTestData(String testName, ExcelReadWrite xls) {
+		// find the row Number of the testcase
+		int testStartRowNum = 1;
+		System.out.println("DataUtil**** "+xls.getCellData(Constants.DATA_SHEET, 0, testStartRowNum));
+		while (!xls.getCellData(Constants.DATA_SHEET, 0, testStartRowNum).equals(testName)) {
 			testStartRowNum++;
 		}
-		System.out.println("Test starts from row - "+ testStartRowNum);
-		int colStartRowNum=testStartRowNum+1;
-		int dataStartRowNum=testStartRowNum+2;
-		
-		// calculate rows of data
-		int rows=0;
-		while(!xls.getCellData(sheetName, 0, dataStartRowNum+rows).equals("")){
-			rows++;
+		System.out.println("Row Number of test is " + testStartRowNum);
+		// find total cols in testcase
+		int colStartRowNum = testStartRowNum + 1;
+		int totalCols = 0;
+		while (!xls.getCellData(Constants.DATA_SHEET, totalCols, colStartRowNum).equals("")) {
+			totalCols++;
 		}
-		System.out.println("Total rows are  - "+rows );
-		
-		//calculate total cols
-		int cols=0;
-		while(!xls.getCellData(sheetName, cols, colStartRowNum).equals("")){
-			cols++;
+		System.out.println("Total Cols - " + totalCols);
+		// find total rows in testcase
+		int dataStartRowNumber = testStartRowNum + 2;
+		int totalRows = 0;
+		while (!xls.getCellData(Constants.DATA_SHEET, 0, dataStartRowNumber).equals("")) {
+			totalRows++;
+			dataStartRowNumber++;
 		}
-		System.out.println("Total cols are  - "+cols );
-		Object[][] data = new Object[rows][1];
-		//read the data
-		int dataRow=0;
-		Hashtable<String,String> table=null;
-		for(int rNum=dataStartRowNum;rNum<dataStartRowNum+rows;rNum++){
-			table = new Hashtable<String,String>();
-			for(int cNum=0;cNum<cols;cNum++){
-				String key=xls.getCellData(sheetName,cNum,colStartRowNum);
-				String value= xls.getCellData(sheetName, cNum, rNum);
-				table.put(key, value);
-				// 0,0 0,1 0,2
-				//1,0 1,1
+		System.out.println("Total Rows " + totalRows);
+
+		// read the data
+		dataStartRowNumber = testStartRowNum + 2;
+		Hashtable<String, String> table = null;
+		int finalRows = dataStartRowNumber + totalRows;
+		Object[][] myData = new Object[totalRows][1];
+		int i = 0;
+		for (int rNum = dataStartRowNumber; rNum < finalRows; rNum++) {
+			table = new Hashtable<String, String>();
+			for (int cNum = 0; cNum < totalCols; cNum++) {// put data in hashtable
+				String data = xls.getCellData(Constants.DATA_SHEET, cNum, rNum);
+				String key = xls.getCellData(Constants.DATA_SHEET, cNum, colStartRowNum);
+				// System.out.println(key+" --- "+data);
+				table.put(key, data);
 			}
-			data[dataRow][0] =table;
-			dataRow++;
+			System.out.println(table);
+			myData[i][0] = table;
+			i++;
+			System.out.println("----------------");
 		}
-		return data;
+
+		return myData;
+
 	}
-	
-	public static boolean isTestExecutable(ExcelReadWrite xls, String testCaseName){
-		int rows = xls.getRowCount(FBConstants.TESTCASES_SHEET);
-		for(int rNum=2;rNum<=rows;rNum++){
-			String tcid = xls.getCellData(FBConstants.TESTCASES_SHEET, "TCID", rNum);
-			if(tcid.equals(testCaseName)){
-				String runmode = xls.getCellData(FBConstants.TESTCASES_SHEET, "Runmode", rNum);
-				if(runmode.equals("Y"))
+
+// function to check the runmode of test
+// true - N
+// false - Y
+	public static boolean isSkip(String testName, ExcelReadWrite xls) {
+		int rows = xls.getRowCount(Constants.TESTCASES_SHEET);
+		for (int rNum = 2; rNum <= rows; rNum++) {
+			String tcid = xls.getCellData(Constants.TESTCASES_SHEET, Constants.TCID_COL, rNum);
+			if (tcid.equals(testName)) {// test is found
+				String runmode = xls.getCellData(Constants.TESTCASES_SHEET, Constants.RUNMODE_COL, rNum);
+				if (runmode.equals(Constants.RUNMODE_NO))
 					return true;
 				else
 					return false;
-
 			}
 		}
-		return false;
+
+		return true;
+
 	}
 }

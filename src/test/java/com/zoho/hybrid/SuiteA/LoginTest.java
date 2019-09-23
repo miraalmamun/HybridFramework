@@ -1,20 +1,39 @@
 package com.zoho.hybrid.SuiteA;
 
+import java.util.Hashtable;
+
+import org.testng.SkipException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.zoho.hybrid.Base.BaseTest;
+import com.zoho.hybrid.driver.DriverScript;
+import com.zoho.hybrid.utils.DataUtil;
 
+
+//Name of java file(java class-->LoginTest) should be same as name in excel file
+//Here LoginTest class name same as in excel file--> 'TestCases' sheet's under--> 'TCID' 
+//name same--->'Data' sheet's test name also same
 public class LoginTest extends BaseTest 
-{
+{   
+	
+	// Make sure that I have my properties and excel file object initialize
+	// before test starts
 	
 	@Test(dataProvider = "getData")
-	public void doLogin(String a, String b,int c)
+	public void doLogin(Hashtable<String, String> data)
 	{
-		System.out.println("I am doLogin Test");
-		System.out.println(a);
-		System.out.println(b);
-		System.out.println(c);
+		System.out.println("Running LoginTest");
+		
+		
+		if(data.get("Runmode").equals("N"))
+		{
+			throw new SkipException("Runmode is set to No");
+		}
+		
+		
+		ds = new DriverScript();
+		ds.executeKeywords(testName, excel, data);
 	}
 	
 	
@@ -23,19 +42,11 @@ public class LoginTest extends BaseTest
 	
 	@DataProvider
 	public Object[][] getData()
-	{   
-		System.out.println("DataProvider");
-		Object[][] data = new Object[2][3];
+	{  
 		
-		data[0][0] = "5";
-		data[0][1]="a";
-		data[0][2]=4;
 		
-		data[1][0] = "4";
-		data[1][1]="b";
-		data[1][2]=3;
 		
-		return data;
+		return DataUtil.getTestData(testName, excel);
 	}
 	
 	
